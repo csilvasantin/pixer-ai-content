@@ -1,5 +1,5 @@
 {
-  "latest": "v.2026.05.02-r50",
-  "updatedAt": "2026-05-06T13:30:00Z",
+  "latest": "v.2026.05.02-r51",
+  "updatedAt": "2026-05-06T22:10:00Z",
   "auto": "Mantenido por .github/workflows/update-pixer-manifest.yml — detecta directorios v.* y actualiza este fichero al mayor."
 }
