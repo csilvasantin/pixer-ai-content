@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pixer.ia · ¿Qué quieres crear hoy?</title>
+  <meta name="description" content="Pixer.ia · la pixería de Admira. Escena 3D para elegir Voces, Música, Imágenes o Video.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sky: #3fa3e0;
+      --ink: #1a1a2e;
+      --paper: #fff8e6;
+      --yellow: #ffc93c;
+      --red: #e03a2d;
+      --blue: #2d6cdf;
+      --green: #4fae49;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      font-family: "Nunito", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background: var(--sky);
+      overflow: hidden;
+    }
+    #c {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      display: block;
+      touch-action: none;
+    }
+    .ui { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+    .ui > * { pointer-events: auto; }
+
+    .topbar {
+      position: absolute; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 28px; gap: 16px;
+    }
+    .brand {
+      display: inline-flex; align-items: center; gap: 12px;
+      text-decoration: none; color: var(--ink);
+    }
+    .brand-logo {
+      width: 52px; height: 52px;
+      background: var(--yellow);
+      border: 4px solid var(--ink);
+      border-radius: 14px;
+      display: grid; place-items: center;
+      font-family: "Lilita One", sans-serif;
+      font-size: 26px;
+      color: var(--red);
+      box-shadow: 4px 4px 0 var(--ink);
+      transform: rotate(-4deg);
+    }
+    .brand-text {
+      font-family: "Lilita One", sans-serif;
+      font-size: 24px; letter-spacing: .01em; line-height: 1;
+      color: var(--ink);
+    }
+    .brand-text small {
+      display: block; font-family: "Nunito", sans-serif; font-weight: 800;
+      font-size: 11px; color: var(--ink); opacity: .8;
+      margin-top: 4px;
+    }
+
+    .right { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      cursor: pointer; text-decoration: none;
+      font-family: "Nunito", sans-serif;
+      font-weight: 900; font-size: 13px;
+      padding: 11px 16px;
+      border: 3px solid var(--ink);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      transition: transform .08s ease, box-shadow .08s ease;
+      letter-spacing: .02em;
+    }
+    .btn:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--ink); }
+    .btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--ink); }
+    .btn.dark { background: var(--ink); color: var(--yellow); }
+
+    .hero {
+      position: absolute; left: 28px; bottom: 28px; max-width: 540px;
+    }
+    .hero h1 {
+      font-family: "Lilita One", sans-serif;
+      font-size: clamp(34px, 4.8vw, 56px);
+      line-height: .95;
+      color: var(--yellow);
+      -webkit-text-stroke: 2.5px var(--ink);
+      text-shadow: 5px 5px 0 var(--ink);
+      margin: 0 0 14px;
+    }
+    .hero h1 em {
+      display: inline-block;
+      font-style: normal;
+      color: var(--red);
+      text-shadow: 5px 5px 0 var(--ink);
+      transform: rotate(-1deg);
+      margin-left: 4px;
+    }
+    .hint {
+      display: inline-block;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 800; font-size: 14px;
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+    .hint .kbd {
+      display: inline-block;
+      background: var(--ink); color: var(--yellow);
+      border-radius: 6px;
+      padding: 1px 8px;
+      font-family: "Lilita One", sans-serif;
+      font-size: 12px;
+      margin: 0 2px;
+    }
+
+    .toy-tip {
+      position: absolute;
+      transform: translate(-50%, -120%);
+      background: var(--tip-bg, var(--yellow));
+      color: var(--tip-fg, var(--ink));
+      border: 3px solid var(--ink);
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-family: "Lilita One", sans-serif;
+      font-size: 22px; line-height: 1;
+      letter-spacing: .03em;
+      box-shadow: 4px 4px 0 var(--ink);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .15s ease;
+      white-space: nowrap;
+    }
+    .toy-tip.visible { opacity: 1; }
+    .toy-tip::after {
+      content: ""; position: absolute; left: 50%; bottom: -10px;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 9px solid transparent;
+      border-right: 9px solid transparent;
+      border-top: 10px solid var(--ink);
+    }
+
+    .loader {
+      position: fixed; inset: 0; z-index: 5;
+      display: grid; place-items: center;
+      background: var(--sky);
+      transition: opacity .4s ease;
+    }
+    .loader.done { opacity: 0; pointer-events: none; }
+    .loader-card {
+      background: var(--paper);
+      border: 4px solid var(--ink);
+      border-radius: 18px;
+      box-shadow: 6px 6px 0 var(--ink);
+      padding: 18px 22px;
+      font-family: "Lilita One", sans-serif;
+      font-size: 22px;
+      color: var(--ink);
+    }
+    .loader-card span { display: inline-block; animation: blink 1s steps(2,end) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    @media (max-width: 700px) {
+      .topbar { padding: 12px 14px; }
+      .brand-text { font-size: 20px; }
+      .hero { left: 14px; right: 14px; bottom: 14px; max-width: none; }
+      .hero h1 { font-size: 32px; }
+      .btn { font-size: 12px; padding: 9px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="c"></canvas>
+
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader-card">CARGANDO LA PIXERÍA<span>…</span></div>
+  </div>
+
+  <div class="ui">
+    <header class="topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-logo">P!</span>
+        <span class="brand-text">PIXER.IA<small>· la pixería de Admira ·</small></span>
+      </a>
+      <div class="right">
+        <a class="btn" href="plataforma.html">Plataforma</a>
+        <a class="btn dark" href="studio.html" title="Modo estudio · vista avanzada (Matrix)">Entrar al estudio →</a>
+      </div>
+    </header>
+
+    <div class="hero">
+      <h1>¿Qué quieres <em>crear hoy?</em></h1>
+      <div class="hint">Mueve el ratón. Haz clic en un juguete · atajos <span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span><span class="kbd">4</span></div>
+    </div>
+
+    <div class="toy-tip" id="tip"></div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+
+    const COLORS = {
+      sky:    '#3fa3e0',
+      wood:   '#b8693d',
+      woodD:  '#8a4925',
+      cream:  '#fff8e6',
+      ink:    '#1a1a2e',
+      yellow: '#ffc93c',
+      yellowD:'#c68f00',
+      red:    '#e03a2d',
+      redD:   '#9c1f15',
+      blue:   '#2d6cdf',
+      blueD:  '#143f96',
+      green:  '#4fae49',
+      greenD: '#2d7a2a',
+      metal:  '#e8e2d0',
+      metalD: '#4a4458',
+    };
+
+    const TOYS = [
+      { id: 'voces',    label: 'VOCES',    href: 'audio.html',    color: COLORS.yellow, dark: COLORS.yellowD, tipFg: COLORS.ink, pos: [-3.4, 0.9,  1.2] },
+      { id: 'musica',   label: 'MÚSICA',   href: 'musica.html',   color: COLORS.red,    dark: COLORS.redD,    tipFg: '#fff',     pos: [-1.2, 1.0,  1.9] },
+      { id: 'imagenes', label: 'IMÁGENES', href: 'imagenes.html', color: COLORS.blue,   dark: COLORS.blueD,   tipFg: '#fff',     pos: [ 1.2, 1.0,  1.9] },
+      { id: 'video',    label: 'VIDEO',    href: 'video.html',    color: COLORS.green,  dark: COLORS.greenD,  tipFg: COLORS.ink, pos: [ 3.4, 0.9,  1.2] },
+    ];
+
+    const canvas = document.getElementById('c');
+    const tipEl  = document.getElementById('tip');
+    const loader = document.getElementById('loader');
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(COLORS.sky);
+    scene.fog = new THREE.Fog(COLORS.sky, 14, 30);
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth/window.innerHeight, 0.1, 100);
+    const CAM_BASE = new THREE.Vector3(0, 3.6, 7.4);
+    const CAM_TARGET = new THREE.Vector3(0, 1.4, 0);
+    camera.position.copy(CAM_BASE);
+    camera.lookAt(CAM_TARGET);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+    const sun = new THREE.DirectionalLight(0xfff0d4, 1.3);
+    sun.position.set(6, 9, 5);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024);
+    const sc = sun.shadow.camera;
+    sc.left = -8; sc.right = 8; sc.top = 8; sc.bottom = -6;
+    sc.near = 1; sc.far = 25;
+    sun.shadow.bias = -0.0005;
+    scene.add(sun);
+    scene.add(new THREE.HemisphereLight(0x9fd6ff, 0xc18a5d, 0.4));
+
+    function makeWoodTexture() {
+      const c = document.createElement('canvas');
+      c.width = 512; c.height = 512;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = COLORS.wood;
+      ctx.fillRect(0, 0, 512, 512);
+      ctx.fillStyle = COLORS.woodD;
+      for (let y = 0; y < 512; y += 64) ctx.fillRect(0, y, 512, 3);
+      for (let row = 0; row < 8; row++) {
+        const offset = (row % 2) * 128;
+        for (let x = 0; x < 512; x += 256) ctx.fillRect((x + offset) % 512, row * 64, 3, 64);
+      }
+      ctx.globalAlpha = 0.18;
+      for (let i = 0; i < 80; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? '#5a3018' : '#e09870';
+        const x = Math.random() * 512, y = Math.random() * 512;
+        const w = 30 + Math.random() * 60;
+        ctx.fillRect(x, y, w, 1);
+      }
+      ctx.globalAlpha = 1;
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(4, 4);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(60, 60),
+      new THREE.MeshStandardMaterial({ map: makeWoodTexture(), roughness: 0.9 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    function makeCloudGroup(x, y, z, scale = 1) {
+      const g = new THREE.Group();
+      const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const blobs = 4 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < blobs; i++) {
+        const r = 0.7 + Math.random() * 0.6;
+        const m = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 10), mat);
+        m.position.set((Math.random() - 0.5) * 2.4, (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 1.4);
+        g.add(m);
+      }
+      g.position.set(x, y, z);
+      g.scale.setScalar(scale);
+      return g;
+    }
+    [ [-9, 6, -8, 1.3], [8, 7, -7, 1.1], [-5, 8, -12, 1.0], [10, 5.5, -10, 1.2], [0, 9, -14, 1.4] ]
+      .forEach(([x,y,z,s]) => scene.add(makeCloudGroup(x,y,z,s)));
+
+    const matFlat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true });
+    const matMetal = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.4, metalness: 0.55 });
+
+    function makeLamp() {
+      const g = new THREE.Group();
+
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 0.14, 28), matMetal(COLORS.metal));
+      base.position.y = 0.07; base.castShadow = true; base.receiveShadow = true;
+      g.add(base);
+
+      const lower = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.4, 14), matMetal(COLORS.metal));
+      lower.position.set(-0.18, 0.78, 0);
+      lower.rotation.z = 0.32;
+      lower.castShadow = true;
+      g.add(lower);
+
+      const j1 = new THREE.Mesh(new THREE.SphereGeometry(0.14, 18, 14), matFlat(COLORS.metalD));
+      j1.position.set(-0.5, 1.42, 0); j1.castShadow = true;
+      g.add(j1);
+
+      const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.25, 14), matMetal(COLORS.metal));
+      upper.position.set(-0.75, 2.0, 0);
+      upper.rotation.z = -0.5;
+      upper.castShadow = true;
+      g.add(upper);
+
+      const j2 = new THREE.Mesh(new THREE.SphereGeometry(0.14, 18, 14), matFlat(COLORS.metalD));
+      j2.position.set(-1.05, 2.55, 0); j2.castShadow = true;
+      g.add(j2);
+
+      const head = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.32, 0.62, 0.62, 24, 1, false),
+        matMetal(COLORS.metal)
+      );
+      head.position.set(-1.35, 2.55, 0);
+      head.rotation.z = Math.PI / 2.2;
+      head.castShadow = true;
+      g.add(head);
+
+      const bulbMat = new THREE.MeshStandardMaterial({
+        color: '#fff7c2', emissive: '#ffd166', emissiveIntensity: 1.6, roughness: 0.3
+      });
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.22, 20, 16), bulbMat);
+      bulb.position.set(-1.0, 2.28, 0);
+      g.add(bulb);
+
+      const bulbLight = new THREE.PointLight(0xffd166, 1.3, 7, 1.6);
+      bulbLight.position.copy(bulb.position);
+      g.add(bulbLight);
+
+      g.position.set(0, 0, -1.2);
+      return g;
+    }
+    const lamp = makeLamp();
+    scene.add(lamp);
+
+    function mkBase(color, dark) {
+      const g = new THREE.Group();
+      const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, 0.12, 24), matFlat(color));
+      disc.castShadow = true; disc.receiveShadow = true;
+      g.add(disc);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.05, 8, 24), matFlat(dark));
+      ring.rotation.x = Math.PI / 2; ring.position.y = 0.06;
+      g.add(ring);
+      return g;
+    }
+
+    function makeMic(t) {
+      const g = new THREE.Group();
+      g.add(mkBase(t.color, t.dark));
+      const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.95, 12), matMetal(COLORS.metalD));
+      stand.position.y = 0.6; stand.castShadow = true;
+      g.add(stand);
+      const head = new THREE.Group();
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(0.28, 22, 16), matFlat(t.color));
+      ball.castShadow = true;
+      head.add(ball);
+      const grille = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.025, 8, 22), matFlat(t.dark));
+      grille.rotation.x = Math.PI / 2; head.add(grille);
+      const grille2 = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.025, 8, 22), matFlat(t.dark));
+      grille2.rotation.x = Math.PI / 2; grille2.position.y = 0.12; head.add(grille2);
+      const grille3 = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.025, 8, 22), matFlat(t.dark));
+      grille3.rotation.x = Math.PI / 2; grille3.position.y = -0.12; head.add(grille3);
+      head.position.y = 1.25;
+      g.add(head);
+      return g;
+    }
+
+    function makeVinyl(t) {
+      const g = new THREE.Group();
+      g.add(mkBase(t.color, t.dark));
+      const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.07, 36), matFlat(COLORS.ink));
+      disc.castShadow = true;
+      disc.position.y = 0.85;
+      disc.rotation.z = 0.35;
+      g.add(disc);
+      for (let r = 0.18; r < 0.6; r += 0.08) {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.005, 6, 40), matFlat('#3a3a4a'));
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = 0.039;
+        disc.add(ring);
+      }
+      const label = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.075, 24), matFlat(t.color));
+      label.position.y = 0.001;
+      disc.add(label);
+      const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.08, 12), matFlat(COLORS.ink));
+      hole.position.y = 0.0;
+      disc.add(hole);
+      return g;
+    }
+
+    function makeEasel(t) {
+      const g = new THREE.Group();
+      g.add(mkBase(t.color, t.dark));
+      const canvasMesh = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.7, 0.07), matFlat(COLORS.cream));
+      canvasMesh.castShadow = true;
+      canvasMesh.position.y = 0.95;
+      g.add(canvasMesh);
+      const frameMat = matFlat(t.dark);
+      const frameThick = 0.06, frameW = 0.95, frameH = 0.7;
+      const top = new THREE.Mesh(new THREE.BoxGeometry(frameW + frameThick*2, frameThick, 0.08), frameMat);
+      top.position.set(0, 0.95 + frameH/2, 0); g.add(top);
+      const bot = top.clone(); bot.position.y = 0.95 - frameH/2; g.add(bot);
+      const lft = new THREE.Mesh(new THREE.BoxGeometry(frameThick, frameH + frameThick*2, 0.08), frameMat);
+      lft.position.set(-frameW/2, 0.95, 0); g.add(lft);
+      const rgt = lft.clone(); rgt.position.x = frameW/2; g.add(rgt);
+      const splash = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), matFlat(t.color));
+      splash.scale.set(1.3, 1, 0.4);
+      splash.position.set(-0.08, 0.95, 0.06);
+      g.add(splash);
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 10), matFlat(COLORS.red));
+      dot.position.set(0.25, 1.15, 0.06); dot.scale.z = 0.4; g.add(dot);
+      const dot2 = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 10), matFlat(COLORS.yellow));
+      dot2.position.set(0.2, 0.78, 0.06); dot2.scale.z = 0.4; g.add(dot2);
+      return g;
+    }
+
+    function makeClapper(t) {
+      const g = new THREE.Group();
+      g.add(mkBase(t.color, t.dark));
+      const body = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.78, 0.12), matFlat(t.dark));
+      body.castShadow = true;
+      body.position.y = 0.85;
+      body.rotation.z = -0.12;
+      g.add(body);
+      const board = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.55, 0.14), matFlat(t.color));
+      board.position.set(0, -0.08, 0.01);
+      body.add(board);
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.2, 0.12), matFlat(t.dark));
+      arm.position.set(0, 0.5, 0);
+      arm.rotation.z = -0.16;
+      body.add(arm);
+      const stripeW = 1.05 / 6;
+      for (let i = 0; i < 6; i++) {
+        const s = new THREE.Mesh(
+          new THREE.BoxGeometry(stripeW * 0.96, 0.2, 0.04),
+          matFlat(i % 2 === 0 ? COLORS.cream : COLORS.ink)
+        );
+        s.position.set(-1.05/2 + stripeW/2 + i*stripeW, 0, 0.07);
+        arm.add(s);
+      }
+      const hinge = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.18, 10), matFlat(COLORS.ink));
+      hinge.rotation.z = Math.PI / 2;
+      hinge.position.set(-0.6, 0.4, 0);
+      body.add(hinge);
+      return g;
+    }
+
+    const makers = { voces: makeMic, musica: makeVinyl, imagenes: makeEasel, video: makeClapper };
+
+    const toyGroups = [];
+    TOYS.forEach((t, i) => {
+      const fn = makers[t.id];
+      const grp = fn(t);
+      grp.position.set(...t.pos);
+      grp.userData = { ...t, idx: i, baseY: t.pos[1], phase: i * 1.7 };
+      grp.traverse(o => { if (o.isMesh) { o.castShadow = true; }});
+      scene.add(grp);
+      toyGroups.push(grp);
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2(0, 0);
+    let hovered = null;
+
+    function setPointer(clientX, clientY) {
+      pointer.x = (clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -((clientY / window.innerHeight) * 2 - 1);
+    }
+
+    function pickToy() {
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(toyGroups, true);
+      if (!hits.length) return null;
+      let o = hits[0].object;
+      while (o && toyGroups.indexOf(o) === -1) o = o.parent;
+      return o;
+    }
+
+    function showTip(toy) {
+      tipEl.textContent = toy.userData.label;
+      tipEl.style.setProperty('--tip-bg', toy.userData.color);
+      tipEl.style.setProperty('--tip-fg', toy.userData.tipFg);
+      tipEl.classList.add('visible');
+    }
+    function hideTip() { tipEl.classList.remove('visible'); }
+    function moveTip() {
+      if (!hovered) return;
+      const p = hovered.position.clone();
+      p.y += 1.6;
+      p.project(camera);
+      const x = (p.x * 0.5 + 0.5) * window.innerWidth;
+      const y = (-p.y * 0.5 + 0.5) * window.innerHeight;
+      tipEl.style.left = x + 'px';
+      tipEl.style.top  = y + 'px';
+    }
+
+    canvas.addEventListener('pointermove', e => {
+      setPointer(e.clientX, e.clientY);
+      const hit = pickToy();
+      if (hit !== hovered) {
+        hovered = hit;
+        if (hovered) { showTip(hovered); canvas.style.cursor = 'pointer'; }
+        else { hideTip(); canvas.style.cursor = 'default'; }
+      }
+    });
+    canvas.addEventListener('pointerleave', () => { hovered = null; hideTip(); });
+    canvas.addEventListener('click', () => {
+      if (hovered) window.location.href = hovered.userData.href;
+    });
+
+    window.addEventListener('keydown', e => {
+      const map = { '1': 'audio.html', '2': 'musica.html', '3': 'imagenes.html', '4': 'video.html', 's': 'studio.html' };
+      if (map[e.key]) window.location.href = map[e.key];
+    });
+
+    const clock = new THREE.Clock();
+
+    function tick() {
+      const dt = clock.getDelta();
+      const t = clock.elapsedTime;
+
+      lamp.position.y = Math.abs(Math.sin(t * 1.4)) * 0.08;
+      lamp.rotation.y = Math.sin(t * 0.7) * 0.18;
+
+      toyGroups.forEach((toy) => {
+        const u = toy.userData;
+        toy.position.y = u.baseY + Math.sin(t * 1.6 + u.phase) * 0.18;
+        toy.rotation.y += dt * 0.6;
+        const targetScale = toy === hovered ? 1.18 : 1.0;
+        const cur = toy.scale.x;
+        const next = cur + (targetScale - cur) * 0.18;
+        toy.scale.setScalar(next);
+      });
+
+      const tx = CAM_BASE.x + pointer.x * 0.9;
+      const ty = CAM_BASE.y + pointer.y * 0.4;
+      camera.position.x += (tx - camera.position.x) * 0.05;
+      camera.position.y += (ty - camera.position.y) * 0.05;
+      camera.lookAt(CAM_TARGET);
+
+      moveTip();
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    requestAnimationFrame(() => {
+      tick();
+      setTimeout(() => loader.classList.add('done'), 250);
+    });
+  </script>
+
+</body>
+</html>
