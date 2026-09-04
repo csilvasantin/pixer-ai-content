@@ -1,5 +1,6 @@
 {
-  "latest": "v.2026.05.02-r53",
-  "updatedAt": "2026-05-14T00:00:00Z",
-  "auto": "Actualizado por .github/workflows/update-pixer-manifest.yml en cada push a main que toque v.*/"
+  "latest": "v.2026.05.02-r54",
+  "updatedAt": "2026-09-04T20:35:05Z",
+  "auto": "Actualizado por .github/workflows/update-pixer-manifest.yml en cada push a main que toque v.*/",
+  "release": "v.04.09.2026.r1.22:35"
 }

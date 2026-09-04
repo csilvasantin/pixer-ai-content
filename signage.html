@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<meta name="admiranext-version" content="v.04.09.2026.r1.22:35">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pixer Signage · Admira XP Display</title>
 <style>
@@ -70,7 +71,8 @@
 </div>
 
 <script>
-const WORKER = 'https://pixer-eleven.csilvasantin.workers.dev';
+// Dominio propio api.admira.store (FLT-1633): LaLiga bloquea workers.dev en horas de fútbol; el worker sigue siendo pixer-eleven.
+const WORKER = 'https://api.admira.store';
 const POLL_MS = 5000;
 let lastShownId = null;
 let totalCount = 0;
